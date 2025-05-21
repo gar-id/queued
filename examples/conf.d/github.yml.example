@@ -1,0 +1,11 @@
+github:
+  group: ""
+  command: bash -c 'for i in {1..20}; do echo $i github.com; sleep 0.1; done; for i in {1..20}; do echo $i gar.my.id; sleep 0.1; done'
+  autoStart: true
+  autoRestart: true
+  startSecs: 0
+  slowStart: 2
+  numProcs: 10
+  user: xfs
+  stdout: ./local/logs/{{.ProgramName}}_{{.ProcessName}}_{{.ProcessIndex}}.log
+  stderr: ./local/logs/{{.ProgramName}}_{{.ProcessName}}_{{.ProcessIndex}}.log

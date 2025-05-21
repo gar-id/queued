@@ -1,0 +1,16 @@
+queued:
+  api:
+    httpListen: 0.0.0.0:3200
+    accessToken: "abogoboga"
+  notification:
+    development:
+      telegram:
+        botToken: "111222333:xxxyyyzzzXXXYYYZZZ"
+        chatId: "-1212123434"
+      lark:
+        webhookUrl: "https://open.larksuite.com/open-apis/bot/v2/hook/aaabbbccc-1122-eeff-dd33-hhhiiijjjkkk444"
+        secret: "abogoboga123"
+  log:
+    level: debug
+    location: "./local/logs"
+  include: "./examples/conf.d"
