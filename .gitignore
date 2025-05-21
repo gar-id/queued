@@ -25,11 +25,9 @@ go.work.sum
 .env
 
 # Others
-!internal/server
-!apps/server
-local
 queued
-control
-server
+apps/server/server
+apps/control/control
+local
 *.yaml
 *.yml
