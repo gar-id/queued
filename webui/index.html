@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Supervisor Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script
+            defer
+            src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+        ></script>
+        <style>
+            @keyframes fade-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.3s ease-out;
+            }
+        </style>
+    </head>
+    <body
+        class="h-full p-6 bg-gray-900 text-gray-100"
+        x-data="processDashboard()"
+        x-init="init()"
+    >
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-3xl font-bold mb-6">
+                Queued Process Manager Dashboard
+            </h1>
+
+            <!-- <div class="flex items-center gap-2 p-4">
+                <label class="text-xl font-bold">API URL:</label>
+                <input
+                    type="text"
+                    class="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    x-model="apiBaseUrl"
+                />
+                <button
+                    class="btn btn-sm btn-primary"
+                    @click="fetchProcesses()"
+                >
+                    Reload
+                </button>
+            </div> -->
+            <div
+                class="bg-gray-800 p-4 rounded-lg shadow-md mb-4 grid grid-cols-1 sm:grid-cols-2"
+            >
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-300 font-semibold"
+                        >API URL:</label
+                    >
+                </div>
+                <div class="flex items-center gap-2">
+                    <input
+                        type="text"
+                        class="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        x-model="apiBaseUrl"
+                    />
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <input
+                    type="text"
+                    x-model="filter"
+                    class="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="Filter by name..."
+                />
+
+                <select
+                    x-model="statusFilter"
+                    class="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                    <option value="">All Statuses</option>
+                    <option value="running">Running</option>
+                    <option value="stopped">Stopped</option>
+                </select>
+
+                <select
+                    x-model="sortBy"
+                    class="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                    <option value="name">Sort by Name</option>
+                    <option value="pid">Sort by PID</option>
+                </select>
+            </div>
+
+            <!-- Process List -->
+            <template x-for="proc in sortedProcesses" :key="proc.id">
+                <div
+                    class="mb-4 bg-gray-800 rounded-2xl shadow p-6 flex justify-between items-center"
+                >
+                    <div>
+                        <h2
+                            class="text-xl font-semibold"
+                            x-text="proc.name"
+                        ></h2>
+                        <p class="text-sm text-gray-400">
+                            PID: <span x-text="proc.pid || '—'"></span>
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            Started:
+                            <span x-text="formatDate(proc.lastStart)"></span>
+                        </p>
+                        <p class="mt-2">
+                            <span
+                                x-text="proc.status"
+                                :class="{
+                    'bg-green-900 text-green-300': proc.status === 'running',
+                    'bg-red-900 text-red-300': proc.status === 'stopped'
+                  }"
+                                class="inline-block px-3 py-1 text-sm font-semibold rounded-full"
+                            >
+                            </span>
+                        </p>
+                    </div>
+                    <div class="space-x-2">
+                        <button
+                            @click="start(proc)"
+                            class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                        >
+                            Start
+                        </button>
+                        <button
+                            @click="stop(proc)"
+                            class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-xl"
+                        >
+                            Stop
+                        </button>
+                        <button
+                            @click="restart(proc)"
+                            class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl"
+                        >
+                            Restart
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div
+            class="fixed top-6 right-6 space-y-2 z-50"
+            x-data
+            x-init="$watch('$store.toasts.items', () => setTimeout(() => $store.toasts.removeOld(), 3000))"
+        >
+            <template
+                x-for="(toast, index) in $store.toasts.items"
+                :key="index"
+            >
+                <div
+                    x-text="toast.message"
+                    class="text-sm px-4 py-2 rounded-xl shadow-lg animate-fade-in"
+                    :class="toast.type === 'success' ? 'bg-green-800 text-white' : 'bg-yellow-800 text-white'"
+                ></div>
+            </template>
+        </div>
+
+        <script>
+            document.addEventListener("alpine:init", () => {
+                Alpine.store("toasts", {
+                    items: [],
+                    add(message, type = "success") {
+                        this.items.push({ message, type, created: Date.now() });
+                    },
+                    removeOld() {
+                        const now = Date.now();
+                        this.items = this.items.filter(
+                            (t) => now - t.created < 3000,
+                        );
+                    },
+                });
+            });
+
+            function processDashboard() {
+                return {
+                    filter: "",
+                    statusFilter: "",
+                    sortBy: "name",
+                    processes: [],
+                    apiBaseUrl: "http://127.0.0.1:3200",
+
+                    async controlProcess(proc, action) {
+                        const urls = {
+                            start: `${this.apiBaseUrl}/api/v1/queued/program/start`,
+                            stop: `${this.apiBaseUrl}/api/v1/queued/program/stop`,
+                            restart: `${this.apiBaseUrl}/api/v1/queued/program/restart`,
+                        };
+
+                        try {
+                            const formData = new FormData();
+                            formData.append("processName", proc.name);
+
+                            const res = await fetch(urls[action], {
+                                method: "POST",
+                                body: formData,
+                            });
+
+                            if (!res.ok)
+                                throw new Error(
+                                    `Failed to ${action} ${proc.name}`,
+                                );
+
+                            Alpine.store("toasts").add(
+                                `${action.charAt(0).toUpperCase() + action.slice(1)}ed ${proc.name}`,
+                            );
+
+                            // Refresh to get latest status
+                            this.fetchProcesses();
+                        } catch (err) {
+                            console.error(err);
+                            Alpine.store("toasts").add(
+                                `Error while trying to ${action} ${proc.name}`,
+                                "warning",
+                            );
+                        }
+                    },
+
+                    async fetchProcesses() {
+                        try {
+                            const res = await fetch(
+                                `${this.apiBaseUrl}/api/v1/queued/program`,
+                            );
+                            const json = await res.json();
+                            const rawPrograms = json.data.programs;
+
+                            this.processes = Object.values(rawPrograms).flatMap(
+                                (program) => {
+                                    return program.processConfig.map(
+                                        (proc) => ({
+                                            id: proc.processName,
+                                            name: proc.processName,
+                                            status: proc.status,
+                                            pid: proc.pid,
+                                            programName: proc.programName,
+                                            lastStart: proc.lastStart,
+                                        }),
+                                    );
+                                },
+                            );
+                        } catch (err) {
+                            console.error("Failed to fetch processes:", err);
+                            Alpine.store("toasts").add(
+                                "Failed to load processes",
+                                "warning",
+                            );
+                        }
+                    },
+
+                    get filteredProcesses() {
+                        return this.processes.filter((proc) => {
+                            const nameMatch = proc.name
+                                .toLowerCase()
+                                .includes(this.filter.toLowerCase());
+                            const statusMatch =
+                                this.statusFilter === "" ||
+                                proc.status === this.statusFilter;
+                            return nameMatch && statusMatch;
+                        });
+                    },
+
+                    get sortedProcesses() {
+                        return this.filteredProcesses.sort((a, b) => {
+                            if (this.sortBy === "name") {
+                                return a.name.localeCompare(b.name);
+                            } else if (this.sortBy === "pid") {
+                                return (a.pid || 0) - (b.pid || 0);
+                            }
+                            return 0;
+                        });
+                    },
+
+                    formatDate(isoString) {
+                        if (!isoString) return "—";
+                        const date = new Date(isoString);
+                        return date.toLocaleString(); // or use toLocaleTimeString() for just time
+                    },
+
+                    start(proc) {
+                        this.controlProcess(proc, "start");
+                    },
+
+                    stop(proc) {
+                        this.controlProcess(proc, "stop");
+                    },
+
+                    restart(proc) {
+                        this.controlProcess(proc, "restart");
+                    },
+
+                    init() {
+                        this.fetchProcesses();
+                        setInterval(() => this.fetchProcesses(), 250); // every 10 seconds
+                    },
+                };
+            }
+        </script>
+    </body>
+</html>
+
