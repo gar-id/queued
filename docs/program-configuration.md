@@ -12,19 +12,20 @@ Each program configuration defines how a specific command should run, how many i
 
 
 ```arduino
-group: "web"
-command: "/usr/bin/my-server --port=8080"
-autoStart: true
-autoRestart: true
-startSecs: 5
-slowStart: 2
-numProcs: 3
-user: "appuser"
-stdout: "/var/log/my-server/stdout.log"
-stderr: "/var/log/my-server/stderr.log"
-env:
-  - "ENV=production"
-  - "DEBUG=false"
+arduino:
+  group: "web"
+  command: "/usr/bin/my-server --port=8080"
+  autoStart: true
+  autoRestart: true
+  startSecs: 5
+  slowStart: 2
+  numProcs: 3
+  user: "appuser"
+  stdout: "/var/log/my-server/stdout.log"
+  stderr: "/var/log/my-server/stderr.log"
+  env:
+    - "ENV=production"
+    - "DEBUG=false"
 ```
 
 ---
