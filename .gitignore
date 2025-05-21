@@ -25,6 +25,8 @@ go.work.sum
 .env
 
 # Others
+!internal/server
+!apps/server
 local
 queued
 control
