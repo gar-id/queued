@@ -20,12 +20,12 @@ type ProgramConfig struct {
 }
 
 type ProcessConfig struct {
-	LastStart    time.Time `json:"lastStart" yaml:"lastStart"`
-	ProcessName  string    `json:"processName" yaml:"processName"`
-	ProgramName  string    `json:"programName" yaml:"programName"`
-	ProcessIndex int       `json:"processIndex" yaml:"processIndex"`
-	PID          *int      `json:"pid" yaml:"pid"`
-	Status       string    `json:"status" yaml:"status"`
+	LastStart    time.Time         `json:"lastStart" yaml:"lastStart"`
+	ProcessName  string            `json:"processName" yaml:"processName"`
+	ProgramName  string            `json:"programName" yaml:"programName"`
+	ProcessIndex int               `json:"processIndex" yaml:"processIndex"`
+	PID          *int              `json:"pid" yaml:"pid"`
+	Status       ProcessStatusType `json:"status" yaml:"status"`
 }
 
 type ProcessChannel struct {

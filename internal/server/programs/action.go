@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gar-id/queued/internal/server/config/caches"
+	"github.com/gar-id/queued/internal/server/config/types"
 	"github.com/gar-id/queued/tools"
 )
 
@@ -62,22 +63,22 @@ func processAction(processName, action string) (returnText string) {
 	// Do action
 	switch action {
 	case "stop":
-		if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "running" {
+		if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusRunning {
 			// Update status
 			caches.Data.Do(func() {
-				caches.Data.ProgramConfig[*programName].Process[processIndex].Status = "stopping"
+				caches.Data.ProgramConfig[*programName].Process[processIndex].Status = types.ProcessStatusStopping
 			})
-		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "stopping" || caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "stopped" {
+		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusStopping || caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusStopped {
 			returnText = fmt.Sprintf("%v is already %v", processName, caches.Data.ProgramConfig[*programName].Process[processIndex].Status)
 			tools.ZapLogger("both").Info(returnText)
 			return returnText
-		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "starting" {
-			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != "running" {
+		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusStarting {
+			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != types.ProcessStatusRunning {
 				time.Sleep(time.Millisecond)
 			}
 			// Update status
 			caches.Data.Do(func() {
-				caches.Data.ProgramConfig[*programName].Process[processIndex].Status = "stopping"
+				caches.Data.ProgramConfig[*programName].Process[processIndex].Status = types.ProcessStatusStopping
 			})
 
 		}
@@ -89,41 +90,41 @@ func processAction(processName, action string) (returnText string) {
 		go func() {
 			*caches.ProcessChannel.Data[processName].StopChannel <- true
 		}()
-		for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != "stopped" {
+		for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != types.ProcessStatusStopped {
 			time.Sleep(time.Millisecond)
 		}
 
 		returnText = fmt.Sprintf("%v is %vped", processName, action)
 	case "restart":
 		// Check current status
-		if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "running" {
+		if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusRunning {
 			returnText = fmt.Sprintf("%v will be %ved", processName, action)
 			tools.ZapLogger("both").Info(returnText)
 
 			go func() {
 				*caches.ProcessChannel.Data[processName].StopChannel <- true
 			}()
-			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != "stopped" {
+			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != types.ProcessStatusStopped {
 				time.Sleep(time.Millisecond)
 			}
 
 			returnText = fmt.Sprintf("%v is %ved", processName, action)
-		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "stopping" {
-			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != "stopped" {
+		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusStopping {
+			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != types.ProcessStatusStopped {
 				time.Sleep(time.Millisecond)
 			}
-		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "starting" {
-			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != "running" {
+		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusStarting {
+			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != types.ProcessStatusRunning {
 				time.Sleep(time.Millisecond)
 			}
 			// Update status
 			caches.Data.Do(func() {
-				caches.Data.ProgramConfig[*programName].Process[processIndex].Status = "stopping"
+				caches.Data.ProgramConfig[*programName].Process[processIndex].Status = types.ProcessStatusStopping
 			})
 			returnText = fmt.Sprintf("%v will be %ved", processName, action)
 			tools.ZapLogger("both").Info(returnText)
 			returnText = fmt.Sprintf("%v is %ved", processName, action)
-		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "stopped" {
+		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusStopped {
 			returnText = fmt.Sprintf("%v is not running, so we changes your action to start", processName)
 			tools.ZapLogger("both").Warn(returnText)
 			returnText = fmt.Sprintf("%v is %ved", processName, action)
@@ -131,22 +132,22 @@ func processAction(processName, action string) (returnText string) {
 
 		// Run process
 		caches.Data.Do(func() {
-			caches.Data.ProgramConfig[*programName].Process[processIndex].Status = "starting"
+			caches.Data.ProgramConfig[*programName].Process[processIndex].Status = types.ProcessStatusStarting
 		})
 		go start(*programName, processName, processIndex)
 
 		tools.ZapLogger("both").Info(returnText)
 	case "start":
 		// Check currenct status
-		if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "running" {
+		if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusRunning {
 			returnText = fmt.Sprintf("%v is already %ved", processName, action)
 			tools.ZapLogger("both").Info(returnText)
 			return returnText
-		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "stopping" {
-			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != "stopped" {
+		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusStopping {
+			for caches.Data.ProgramConfig[*programName].Process[processIndex].Status != types.ProcessStatusStopped {
 				time.Sleep(time.Millisecond)
 			}
-		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == "starting" {
+		} else if caches.Data.ProgramConfig[*programName].Process[processIndex].Status == types.ProcessStatusStarting {
 			returnText = fmt.Sprintf("cannot start %v. %v is already %v",
 				processName,
 				processName,
@@ -160,7 +161,7 @@ func processAction(processName, action string) (returnText string) {
 
 		// Run program
 		caches.Data.Do(func() {
-			caches.Data.ProgramConfig[*programName].Process[processIndex].Status = "starting"
+			caches.Data.ProgramConfig[*programName].Process[processIndex].Status = types.ProcessStatusStarting
 		})
 		go start(*programName, processName, processIndex)
 
