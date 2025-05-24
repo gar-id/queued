@@ -9,6 +9,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gar-id/queued/internal/server/api/types"
+	configTypes "github.com/gar-id/queued/internal/server/config/types"
 	"github.com/gar-id/queued/tools"
 	"github.com/olekukonko/tablewriter"
 )
@@ -35,13 +36,14 @@ func QueuedStatus() {
 	var valuesArray [][]string
 	for programName, program := range statusResult.Data.Programs {
 		for _, process := range program.Process {
+			var statusColor string
 			// Set uptime color
-			if process.Status == "running" {
-				process.Status = fmt.Sprintf(color.GreenString("%s"), process.Status)
-			} else if process.Status == "stopped" || process.Status == "fatal" {
-				process.Status = fmt.Sprintf(color.RedString("%s"), process.Status)
+			if process.Status == configTypes.ProcessStatusRunning {
+				statusColor = fmt.Sprintf(color.GreenString("%s"), process.Status)
+			} else if process.Status == configTypes.ProcessStatusStopped || process.Status == configTypes.ProcessStatusFatal {
+				statusColor = fmt.Sprintf(color.RedString("%s"), process.Status)
 			} else {
-				process.Status = fmt.Sprintf(color.YellowString("%s"), process.Status)
+				statusColor = fmt.Sprintf(color.YellowString("%s"), process.Status)
 			}
 
 			// Add to array
@@ -53,7 +55,7 @@ func QueuedStatus() {
 				programName,
 				process.ProcessName,
 				strconv.Itoa(*process.PID),
-				process.Status,
+				statusColor,
 				process.LastStart.String(),
 				program.User,
 				strconv.FormatBool(program.AutoStart),
