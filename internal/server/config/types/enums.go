@@ -1,10 +1,10 @@
 package types
 
-// Create enums for TokenType
+// Create enums for ProcessStatus
 type ProcessStatusType string
 type setupProcessStatus string
 
-// Enum values for TokenType
+// Enum values for ProcessStatus
 const (
 	ProcessStatusStopped  ProcessStatusType = "stopped"
 	ProcessStatusStopping ProcessStatusType = "stopping"

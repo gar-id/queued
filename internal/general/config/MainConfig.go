@@ -17,7 +17,7 @@ func LoadMainConfig(file_location string) {
 	// Load server config file
 	yamlFile, err := os.ReadFile(filePath)
 	if err != nil {
-		tools.ZapLogger("console").Error(err.Error())
+		tools.ZapLogger("console").Warn(err.Error())
 		var configEnv = types.MainConfig{
 			QueueD: struct {
 				API          types.ConfigAPI                     "json:\"api\" yaml:\"api\""
