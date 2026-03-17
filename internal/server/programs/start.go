@@ -190,6 +190,11 @@ func runProcess(programName, processName string, processIndex int) (programCmd *
 	programCmd.Env = os.Environ()
 	programCmd.Env = append(programCmd.Env, caches.Data.ProgramConfig[programName].Env...)
 
+	// Update workdir
+	if caches.Data.ProgramConfig[processName].Workdir != "" {
+		programCmd.Dir = caches.Data.ProgramConfig[processName].Workdir
+	}
+
 	// Start command
 	programCmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	err = programCmd.Start()

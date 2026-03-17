@@ -7,5 +7,6 @@ github:
   slowStart: 2
   numProcs: 10
   user: xfs
+  workDir: /app
   stdout: ./local/logs/{{.ProgramName}}_{{.ProcessName}}_{{.ProcessIndex}}.log
   stderr: ./local/logs/{{.ProgramName}}_{{.ProcessName}}_{{.ProcessIndex}}.log

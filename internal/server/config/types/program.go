@@ -14,6 +14,7 @@ type ProgramConfig struct {
 	SlowStart   int             `json:"slowStart" yaml:"slowStart"`
 	NumProcs    int             `json:"numProcs" yaml:"numProcs"`
 	User        string          `json:"user" yaml:"user"`
+	Workdir     string          `json:"workDir" yaml:"workDir"`
 	Stdout      string          `json:"stdout" yaml:"stdout"`
 	Stderr      string          `json:"stderr" yaml:"stderr"`
 	Env         []string        `json:"env" yaml:"env"`

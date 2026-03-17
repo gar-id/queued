@@ -1,5 +1,14 @@
 FROM	golang:1.22.3-alpine AS builder
 
+# Args
+ARG	TARGET_ARCH
+
+# Add UPX
+RUN	apk add curl --no-cache tar xz && \
+	curl -o /tmp/upx.tar.gz -L https://github.com/upx/upx/releases/download/v5.1.1/upx-5.1.1-${TARGET_ARCH}_linux.tar.xz && \
+	tar -xf /tmp/upx.tar.gz && \
+	mv ./upx-5.1.1-${TARGET_ARCH}_linux/upx /bin/upx
+
 # Init required packages
 WORKDIR	/app
 COPY	go.mod go.mod
@@ -8,16 +17,20 @@ COPY	. .
 
 # Build Queued Server
 WORKDIR	/app/apps/server
-RUN	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -ldflags "-s -w" -o queued
+RUN	GOOS=linux GOARCH=${TARGET_ARCH} CGO_ENABLED=0 go build -v -ldflags "-s -w" -o queued
 # Build Qeueued Control
 WORKDIR	/app/apps/control
-RUN	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -ldflags "-s -w" -o qctl
+RUN	GOOS=linux GOARCH=${TARGET_ARCH} CGO_ENABLED=0 go build -v -ldflags "-s -w" -o qctl
+
+# Compress with UPX
+RUN	upx --best --lzma /app/apps/server/queued && \
+	upx --best --lzma /app/apps/control/qctl
 
 # Final image
 FROM	alpine:latest
-COPY	--from=builder /app/apps/server/queued /app/apps/control/qctl /bin/
+COPY	--from=builder /app/apps/server/queued /app/apps/control/qctl /bin/upx /bin/
 RUN	mkdir -p /var/log/queued && \
-	mkdir -p /etc/queued/conf.d 
+	mkdir -p /etc/queued/conf.d
 
 # Setup local user
 # Create a new group
@@ -39,7 +52,7 @@ ENV	\
 	QUEUED_LOG_LEVEL=info \
 	QUEUED_LOG_LOCATION=/var/log/queued \
 	QUEUED_INCLUDE=/etc/queued/conf.d
-	
+
 EXPOSE	3200
 
 CMD	["/bin/queued", "server"]

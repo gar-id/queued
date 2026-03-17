@@ -21,6 +21,7 @@ arduino:
   slowStart: 2
   numProcs: 3
   user: "appuser"
+  workDir: "/home"
   stdout: "/var/log/my-server/stdout.log"
   stderr: "/var/log/my-server/stderr.log"
   env:
