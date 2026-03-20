@@ -18,6 +18,7 @@ type ProgramConfig struct {
 	Stdout      string          `json:"stdout" yaml:"stdout"`
 	Stderr      string          `json:"stderr" yaml:"stderr"`
 	Env         []string        `json:"env" yaml:"env"`
+	EnvFile     []string        `json:"envFile" yaml:"envFile"`
 }
 
 type ProcessConfig struct {

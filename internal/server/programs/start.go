@@ -187,12 +187,20 @@ func runProcess(programName, processName string, processIndex int) (programCmd *
 	}
 
 	// Add env from config
+	// Env array
 	programCmd.Env = os.Environ()
 	programCmd.Env = append(programCmd.Env, caches.Data.ProgramConfig[programName].Env...)
+	// Env files
+	if len(caches.Data.ProgramConfig[programName].EnvFile) > 0 {
+		for _, envFile := range caches.Data.ProgramConfig[programName].EnvFile {
+			envFromFile := tools.ParseEnvFile(envFile)
+			programCmd.Env = append(programCmd.Env, envFromFile...)
+		}
+	}
 
 	// Update workdir
-	if caches.Data.ProgramConfig[processName].Workdir != "" {
-		programCmd.Dir = caches.Data.ProgramConfig[processName].Workdir
+	if caches.Data.ProgramConfig[programName].Workdir != "" {
+		programCmd.Dir = caches.Data.ProgramConfig[programName].Workdir
 	}
 
 	// Start command

@@ -35,7 +35,7 @@ RUN	mkdir -p /var/log/queued && \
 # Setup local user
 # Create a new group
 RUN	addgroup -S queued
-RUN	adduser -S queued -G queued
+RUN	adduser -S queued -G queued -h /app
 
 RUN	mkdir -p /var/log/queued && \
 	mkdir -p /etc/queued/conf.d && \
@@ -43,6 +43,7 @@ RUN	mkdir -p /var/log/queued && \
 	chown queued:queued /etc/queued
 
 USER	queued
+WORKDIR	/app
 
 # Setup default env
 ENV	\
